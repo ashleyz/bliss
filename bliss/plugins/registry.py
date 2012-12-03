@@ -12,4 +12,8 @@ _registry.append({"module"   : "bliss.plugins.ssh.job",         "class" : "SSHJo
 _registry.append({"module"   : "bliss.plugins.sftp.sftpfile",   "class" : "SFTPFilesystemPlugin"})
 _registry.append({"module"   : "bliss.plugins.sge.sgesshjob",   "class" : "SGEJobPlugin"})
 _registry.append({"module"   : "bliss.plugins.pbs.pbsshjob",    "class" : "PBSJobPlugin"})
+_registry.append({"class"   : LFCLogicalFilePlugin,
+                  "apis"    : LFCLogicalFilePlugin.supported_apis(),
+                  "name"    : LFCLogicalFilePlugin.plugin_name(),
+                  "schemas" : LFCLogicalFilePlugin.supported_schemas()})
 
