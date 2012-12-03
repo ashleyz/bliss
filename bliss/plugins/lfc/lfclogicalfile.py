@@ -16,7 +16,7 @@ import errno
 
 import logging
 
-import lfc2 as lfc
+#import lfc2 as lfc
 
 ################################################################################
 
