@@ -100,6 +100,7 @@ setup_args = {
         "bliss.plugins.sge",
         "bliss.plugins.pbs",
         "bliss.plugins.sftp",
+        "bliss.plugins.lfc",
         "bliss.plugins.ssh"
     ],
     'scripts': scripts,

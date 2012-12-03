@@ -47,8 +47,11 @@ class LogicalFile(Object):
                print file.get_size ()
 
         '''
-        Object.__init__(self, Object.Type.LogicalFileFile, 
-                        apitype=Object.Type.LogicalFileAPI, session=session)
+#        Object.__init__(self, Object.Type.LogicalFileFile, 
+#                        apitype=Object.Type.LogicalFileAPI, session=session)
+
+        Object.__init__(self, session=session)
+        self.apitype = "saga.logicalfile"
 
         if type(url) == str:
             self._url = bliss.saga.Url(str(url))

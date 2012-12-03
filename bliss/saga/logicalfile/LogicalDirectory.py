@@ -53,8 +53,10 @@ class LogicalDirectory(Object):
                files = dir.list ()
 
         '''
-        Object.__init__(self, Object.Type.LogicalFileDirectory, 
-                        apitype=Object.Type.LogicalFileAPI, session=session)
+        #Object.__init__(self, Object.Type.LogicalFileDirectory, 
+        #                apitype=Object.Type.LogicalFileAPI, session=session)
+        Object.__init__(self, session=session)
+        self._apitype="saga.logicalfile"
 
         if(type(url) == str):
             self._url = Url(str(url))
