@@ -16,7 +16,11 @@ import errno
 
 import logging
 
-#import lfc2 as lfc
+#seems required to have this work -- install python-lfc on ubuntu to get the functionality
+try:
+    import lfc2 as lfc
+except Exception, ex:
+    print "LFC for Python not installed -- install python-lfc on Ubuntu w/ apt to get it"
 
 ################################################################################
 
