@@ -11,4 +11,4 @@ from bliss.interface.sdinterface import SDPluginInterface
 from bliss.interface.jobinterface import JobPluginInterface
 from bliss.interface.resourceinterface import ResourcePluginInterface
 from bliss.interface.filesysteminterface import FilesystemPluginInterface
-
+from bliss.interface.logicalfileinterface import LogicalFilePluginInterface

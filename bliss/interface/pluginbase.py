@@ -16,6 +16,7 @@ class PluginBaseInterface:
     api_type_saga_resource   = "saga.resource"
     api_type_saga_job        = "saga.job"
     api_type_saga_sd         = "saga.sd"
+    api_type_saga_logicalfile = "saga.logicalfile"
     
     def __init__(self, name, schemas, api):
         '''Class constructor'''
