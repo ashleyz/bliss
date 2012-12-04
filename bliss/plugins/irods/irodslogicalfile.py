@@ -21,6 +21,7 @@ import logging
 class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     '''Implements a logicalfile plugin that does things via lfc2
     '''
+    #
     ## Define adaptor name. Convention is:
     ##         saga.plugin.<package>.<name>
     _name = 'saga.plugin.logicalfile.irods'
