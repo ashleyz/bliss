@@ -101,6 +101,7 @@ setup_args = {
         "bliss.plugins.pbs",
         "bliss.plugins.sftp",
         "bliss.plugins.lfc",
+        "bliss.plugins.irods",
         "bliss.plugins.ssh"
     ],
     'scripts': scripts,

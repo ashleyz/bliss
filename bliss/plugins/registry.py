@@ -15,6 +15,7 @@ _registry.append({"module"   : "bliss.plugins.pbs.pbsshjob",    "class" : "PBSJo
 
 from bliss.plugins.lfc import lfclogicalfile
 _registry.append({"module"    : "bliss.plugins.lfc.lfclogicalfile", "class" : "LFCLogicalFilePlugin"})
+_registry.append({"module"    : "bliss.plugins.irods.irodslogicalfile", "class" : "iRODSLogicalFilePlugin"})
 #_registry.append({"class"   : LFCLogicalFilePlugin,
 #                  "apis"    : LFCLogicalFilePlugin.supported_apis(),
 #                  "name"    : LFCLogicalFilePlugin.plugin_name(),
