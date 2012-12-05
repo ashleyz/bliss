@@ -17,7 +17,6 @@ import errno
 import logging
 
 ################################################################################
-
 class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     '''Implements a logicalfile plugin that does things via lfc2
     '''
