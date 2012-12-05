@@ -49,7 +49,7 @@ class LFCLogicalFilePlugin(LogicalFilePluginInterface):
         '''Implements interface from PluginBaseInterface
         '''
         try:
-            import lfc2
+            import lfc2 as lfc
         except Exception, ex:
             raise Exception("lfc2 module missing")
             

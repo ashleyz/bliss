@@ -6,6 +6,7 @@ __copyright__ = "Copyright 2012, Mark Santcroos"
 __license__   = "MIT"
 
 from bliss.interface import LogicalFilePluginInterface
+from bliss.utils.command_wrapper import CommandWrapper, CommandWrapperException
 
 import os, pwd
 import sys
@@ -37,11 +38,24 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     def __init__(self, url):
         '''Class constructor'''
         LogicalFilePluginInterface.__init__(self, name=self._name, schemas=self._schemas)
-
+        
+        cw = CommandWrapper.initAsLocalWrapper(logger=self)
+        cw.connect()
+        self._cw = cw
+     
     @classmethod
     def sanity_check(self):
         '''Implements interface from PluginBaseInterface
         '''
+        cw = CommandWrapper.initAsLocalWrapper(logger=self)
+        cw.connect()
+        result = cw.run("which ils")
+        if result.returncode != 0:
+            print "Couldn't locate iRODS commandline tools: %s"  % (result.stdout)
+        print result.returncode
+        
+        # try ienv or imiscsvrinfo later? ( check for error messages )
+
         return
         #try:
         #    import lfc2
@@ -81,10 +95,30 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     ######################################################################
     ##
     def dir_list(self, dir_obj, pattern):
-        return
 
-        # complete_path = dir_obj._url.path
-        # result = []
+        complete_path = dir_obj._url.path
+        result = []
+
+        self.log_debug("Attempting to get listing for %s" % complete_path)
+
+        try:
+            cw_result = self._cw.run("ils %s" % complete_path)
+            
+            if cw_result.returncode != 0:
+                raise Exception("Could not open directory")
+
+            # strip extra linebreaks from stdout, make a list w/ linebreaks, skip first entry which tells us the current directory
+            for item in cw_result.stdout.strip().split("\n")[1:]:
+                item = item.strip()
+                if item.startswith("C- "):
+                    #result.append("dir " + item[3:])
+                    result.append(item[3:])
+                else:
+                    #result.append("file " +item)
+                    result.append(item)
+
+        except Exception, ex:
+            self.log_error_and_raise(bliss.saga.Error.NoSuccess, "Couldn't list directory: %s " % (str(ex)))
 
         # try:
         #     self.log_info("Trying to LSDIR '%s'" % (complete_path))
@@ -105,7 +139,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         #     self.log_error_and_raise(bliss.saga.Error.NoSuccess,
         #     "Couldn't list directory: %s " % (str(ex)))
 
-        # return result
+        return result
 
 
     ######################################################################
