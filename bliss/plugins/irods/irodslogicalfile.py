@@ -32,29 +32,56 @@ def irods_get_listing(plugin, dir):
     try:
         cw = CommandWrapper.initAsLocalWrapper(None)
         cw.connect()
+        
+        # execute the ils -L command
+        cw_result = cw.run("ils -L %s" % dir)
 
-        cw_result = cw.run("ils %s" % dir)
-
-        print "running ils %s" % dir
-
+        # make sure we ran ok
         if cw_result.returncode != 0:
             raise Exception("Could not open directory")
 
         # strip extra linebreaks from stdout, make a list w/ linebreaks, skip first entry which tells us the current directory
         for item in cw_result.stdout.strip().split("\n"):
+
+            # if we are listing a directory or remote resource file location i.e.
+            # (bliss-irods)[azebro1@gw68 bliss]$ ils -L /osg/home/azebro1
+            # /osg/home/azebro1:
+            #    azebro1           1 UFlorida-SSERCA_FTP            12 2012-11-14.09:55 & irods-test.txt
+            #          /data/cache/UFlorida-SSERCA_FTPplaceholder/home/azebro1/irods-test.txt    osgGridFtpGroup
+
+            # then we want to ignore that entry (not using it for now)
+            if item.strip().startswith("/"):
+                continue 
+            
+            #remove whitespace
             item = item.strip()
 
             #entry for file or directory
+            dir_entry = irods_entry()
             
-            #we have a directory here
+            #if we have a directory here
             if item.startswith("C- "):
-                #result.append("dir " + item[3:])
-                result.append(item[3:])
+                dir_entry.name = item[3:]
+                dir_entry.is_directory = True
 
-            #we have a file here
+            #if we have a file here
             else:
-                #result.append("file " +item)
-                result.append(item)
+                # ils -L output looks like this after you split it:
+                #  0           1    2                      3     4                   5    6
+                # ['azebro1', '1', 'UFlorida-SSERCA_FTP', '12', '2012-11-14.09:55', '&', 'irods-test.txt']
+                # not sure what 1 and 5 are ... 
+                dir_entry.owner = item.split()[0]
+                dir_entry.locations = item.split()[2]
+                dir_entry.size = item.split()[3]
+                dir_entry.date = item.split()[4]
+                dir_entry.name = item.split()[6]
+
+            result.append(dir_entry)
+
+        # TODO: merge all entries on the list with duplicate filenames into a single entry, and use the locations attribute
+        #       to keep track of where they're saved
+        return result
+        
 
     except Exception, e:
         plugin.log_error_and_raise(bliss.saga.Error.NoSuccess, "Couldn't get directory listing: %s " % (str(e)))
@@ -193,17 +220,9 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     def file_get_size(self, file_obj):
         '''Implements interface from FilesystemPluginInterface
         '''
-
-        complete_url = str(file_obj._url)
         path = file_obj._url.get_path()
         listing = irods_get_listing(self, path)
-
-        for i in listing:
-            print i
-        
-        return 42
-        
-        return
+        return listing[0].size
 
         # complete_url = str(file_obj._url)
         # try:
