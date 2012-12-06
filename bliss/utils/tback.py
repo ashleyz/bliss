@@ -12,6 +12,7 @@ def get_traceback(prefix="\n"):
     '''returns the last traceback as a string with a given prefix'''
     fp = StringIO.StringIO()
     traceback.print_exc(file=fp)
+    #traceback.print_tb(file=fp)
     if fp.getvalue() == "None\n":
         return "(No Stacktrace)"
     else:

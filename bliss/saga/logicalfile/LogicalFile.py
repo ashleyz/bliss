@@ -51,7 +51,7 @@ class LogicalFile(Object):
 #                        apitype=Object.Type.LogicalFileAPI, session=session)
 
         Object.__init__(self, session=session)
-        self.apitype = "saga.logicalfile"
+        self._apitype = "saga.logicalfile"
 
         if type(url) == str:
             self._url = bliss.saga.Url(str(url))

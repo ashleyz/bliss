@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
-'''This examples shows how list a directory on a LFC.
+'''This example runs some iRODS commands
 
    If something doesn't work as expected, try to set 
    SAGA_VERBOSE=3 in your environment before you run the
@@ -12,8 +12,8 @@
    report it at: https://github.com/saga-project/bliss/issues
 '''
 
-__author__    = "Mark Santcroos"
-__copyright__ = "Copyright 2012, Mark Santcroos"
+__author__    = "Ashley Zebrowski"
+__copyright__ = "Copyright 2012, Ashley Zebrowski"
 __license__   = "MIT"
 
 import sys, time
@@ -27,6 +27,9 @@ def main():
         
         for entry in mydir.list():
             print entry
+
+        myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/irods-test.txt')
+        print myfile.get_size()
 
     except saga.Exception, ex:
         print "An error occured during file operation: %s" % (str(ex))

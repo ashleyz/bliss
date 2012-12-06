@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
-__author__    = "Mark Santcroos"
-__copyright__ = "Copyright 2012, Mark Santcroos"
+__author__    = "Ashley Zebrowski"
+__copyright__ = "Copyright 2012, Ashley Zebrowski"
 __license__   = "MIT"
 
 from bliss.interface import LogicalFilePluginInterface
@@ -16,6 +16,51 @@ from bliss.saga.Error import Error as SAGAError
 import errno
 
 import logging
+
+#class to hold info on a file or directory
+class irods_entry():
+    def __init__(self):
+        self.name = "undefined"
+        self.locations = ("undefined")
+        self.size = 1234567899
+        self.owner = "undefined"
+        self.date = "1/1/1111"
+        self.is_directory = False
+
+def irods_get_listing(plugin, dir):
+    result = []
+    try:
+        cw = CommandWrapper.initAsLocalWrapper(None)
+        cw.connect()
+
+        cw_result = cw.run("ils %s" % dir)
+
+        print "running ils %s" % dir
+
+        if cw_result.returncode != 0:
+            raise Exception("Could not open directory")
+
+        # strip extra linebreaks from stdout, make a list w/ linebreaks, skip first entry which tells us the current directory
+        for item in cw_result.stdout.strip().split("\n"):
+            item = item.strip()
+
+            #entry for file or directory
+            
+            #we have a directory here
+            if item.startswith("C- "):
+                #result.append("dir " + item[3:])
+                result.append(item[3:])
+
+            #we have a file here
+            else:
+                #result.append("file " +item)
+                result.append(item)
+
+    except Exception, e:
+        plugin.log_error_and_raise(bliss.saga.Error.NoSuccess, "Couldn't get directory listing: %s " % (str(e)))
+
+    return result
+
 
 ################################################################################
 class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
@@ -144,9 +189,20 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
 
     ######################################################################
     ## 
+
     def file_get_size(self, file_obj):
         '''Implements interface from FilesystemPluginInterface
         '''
+
+        complete_url = str(file_obj._url)
+        path = file_obj._url.get_path()
+        listing = irods_get_listing(self, path)
+
+        for i in listing:
+            print i
+        
+        return 42
+        
         return
 
         # complete_url = str(file_obj._url)
