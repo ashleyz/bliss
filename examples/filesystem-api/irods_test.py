@@ -31,6 +31,8 @@ def main():
         myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/irods-test.txt')
         print myfile.get_size()
 
+        print myfile.list_locations()
+
     except saga.Exception, ex:
         print "An error occured during file operation: %s" % (str(ex))
         sys.exit(-1)

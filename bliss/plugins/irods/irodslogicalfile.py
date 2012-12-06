@@ -21,11 +21,19 @@ import logging
 class irods_entry():
     def __init__(self):
         self.name = "undefined"
-        self.locations = ("undefined")
+        self.locations = []
         self.size = 1234567899
         self.owner = "undefined"
         self.date = "1/1/1111"
         self.is_directory = False
+
+    def __str__(self):
+        return str(self.name + " " +  \
+                   "/".join(self.locations) + " " + \
+                   str(self.size) + " " + \
+                   self.owner + " " + \
+                   self.date + " " + \
+                   str(self.is_directory))
 
 def irods_get_listing(plugin, dir):
     result = []
@@ -71,17 +79,29 @@ def irods_get_listing(plugin, dir):
                 # ['azebro1', '1', 'UFlorida-SSERCA_FTP', '12', '2012-11-14.09:55', '&', 'irods-test.txt']
                 # not sure what 1 and 5 are ... 
                 dir_entry.owner = item.split()[0]
-                dir_entry.locations = item.split()[2]
+                dir_entry.locations = [item.split()[2]]
                 dir_entry.size = item.split()[3]
                 dir_entry.date = item.split()[4]
                 dir_entry.name = item.split()[6]
 
             result.append(dir_entry)
 
-        # TODO: merge all entries on the list with duplicate filenames into a single entry, and use the locations attribute
+        # TODO: merge all entries on the list with duplicate filenames into a
+        #       single entry, and use the locations attribute
         #       to keep track of where they're saved
-        return result
-        
+
+        final_list = []
+        for item in result:
+            if item.name in [i.name for i in final_list]:
+                #duplicate name, merge this entry with the previous one
+                for final_list_item in final_list:
+                    if final_list_item.name == item.name:
+                        final_list_item.locations.append(item.locations[0])
+            else:
+                final_list.append(item)
+
+        unique_name = list(set([i.name for i in final_list]))
+        return final_list
 
     except Exception, e:
         plugin.log_error_and_raise(bliss.saga.Error.NoSuccess, "Couldn't get directory listing: %s " % (str(e)))
@@ -307,7 +327,9 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         '''This method is called upon logicaldir.list_locations()
         '''
 
-        return
+        path = logicalfile_obj._url.get_path()
+        listing = irods_get_listing(self, path)
+        return listing[0].locations
 
 
         # complete_path = logicalfile_obj._url.path
