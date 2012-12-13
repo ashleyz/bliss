@@ -22,8 +22,11 @@ import bliss.saga as saga
 def main():
     
     try:
+        print "Creating iRODS directory object"
         mydir = saga.logicalfile.LogicalDirectory('irods:///osg/home/azebro1') 
         #mydir_wrong = saga.logicalfile.LogicalDirectory('lfn://lfc.grid.sara.nl:5010/grid/vlemed/mark/bliss-non-exist') 
+
+        print "Printing results"
         
         for entry in mydir.list():
             print entry
@@ -32,6 +35,8 @@ def main():
         print myfile.get_size()
 
         print myfile.list_locations()
+
+        mydir.make_dir("irods:///osg/home/azebro1/irods-test-dir/")
 
     except saga.Exception, ex:
         print "An error occured during file operation: %s" % (str(ex))

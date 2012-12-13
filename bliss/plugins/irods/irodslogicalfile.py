@@ -331,6 +331,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     ######################################################################
     ##
     def dir_list(self, dir_obj, pattern):
+        #TODO: Make this use the irods_get_directory_listing
 
         complete_path = dir_obj._url.path
         result = []
@@ -386,51 +387,36 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         '''
         path = file_obj._url.get_path()
         listing = irods_get_directory_listing(self, path)
-
         return listing[0].size
-
-        # complete_url = str(file_obj._url)
-        # try:
-        #     return lcg_get_size(complete_url)
-        # except Exception, ex:
-        #     self.log_error_and_raise(bliss.saga.Error.NoSuccess, 
-        #     "Couldn't determine size for '%s': %s " % (complete_url, (str(ex))))
 
 
     ######################################################################
     ##
-    def logicaldir_make_dir(self, dir_obj, path, flags):
+    def dir_make_dir(self, dir_obj, path, flags):
         '''Implements interface from FilesystemPluginInterface
         '''
+        #complete_path = dir_obj._url.path
+        complete_path = bliss.saga.Url(path).get_path()
+        self.log_debug("Attempting to make directory at: %s" % complete_path)
+
+        try:
+            cw_result = self._cw.run("imkdir %s" % complete_path)
+
+            if cw_result.returncode != 0:
+                raise Exception("Could not create directory %s, errorcode %s: %s"\
+                                    % (complete_path, str(cw_result.returncode),
+                                       cw_result))
+
+        except Exception, ex:
+            # did the directory already exist?
+            if "CATALOG_ALREADY_HAS_ITEM_BY_THAT_NAME" in str(ex):
+                self.log_error_and_raise(bliss.saga.Error.AlreadyExists,
+                                         "Directory already exists.")
+            # couldn't create for unspecificed reason
+            self.log_error_and_raise(bliss.saga.Error.NoSuccess, 
+                                     "Couldn't create directory.")
+
         return
-
-        # complete_path = os.path.join(dir_obj._url.path, path)
-        # complete_url = str(dir_obj._url) + '/' + path
-
-        # # LOCAL FILESYSTEM
-        # if dir_obj.is_local:
-        #     if os.path.exists(complete_path):
-        #         self.log_error_and_raise(bliss.saga.Error.AlreadyExists,
-        #          "Couldn't create directory '%s'. Entry already exist." % (complete_path))
-        #     else:
-        #         os.mkdir(complete_path)
-
-        # # REMOTE FILESYSTEM VIA GFAL
-        # else:
-        #     # throw exception if directory already exists
-        #     #stat = self.entry_getstat(dir_obj, path)
-        #     #if stat != None:
-        #     #    self.log_error_and_raise(bliss.saga.Error.AlreadyExists,
-        #     #     "Couldn't create directory '%s'. Entry already exist." % (complete_path))
-
-        #     try:
-        #         self.log_debug('Creating directory: ' + complete_url)
-        #         lcg_mkdir(complete_url, 0640, 'vlemed')
-
-        #     except Exception, ex:
-        #         self.log_error_and_raise(bliss.saga.Error.NoSuccess,
-        #          "Couldn't create directory '%s': %s " % (complete_path, str(ex)))
-
 
     ######################################################################
     ##
