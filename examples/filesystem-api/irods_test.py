@@ -36,7 +36,11 @@ def main():
 
         print myfile.list_locations()
 
+        print "Making test dir"
         mydir.make_dir("irods:///osg/home/azebro1/irods-test-dir/")
+
+        print "Deleting test dir"
+        mydir.remove("irods:///osg/home/azebro1/irods-test-dir/")
 
     except saga.Exception, ex:
         print "An error occured during file operation: %s" % (str(ex))

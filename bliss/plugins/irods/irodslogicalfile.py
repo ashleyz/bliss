@@ -415,15 +415,36 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
             # couldn't create for unspecificed reason
             self.log_error_and_raise(bliss.saga.Error.NoSuccess, 
                                      "Couldn't create directory.")
-
         return
 
     ######################################################################
     ##
-    def logicaldir_remove(self, dir_obj, path=None):
+    def dir_remove(self, dir_obj, path=None):
         '''This method is called upon logicaldir.remove()
         '''
+        #complete_path = dir_obj._url.path
+        complete_path = bliss.saga.Url(path).get_path()
+        self.log_debug("Attempting to remove directory at: %s" % complete_path)
 
+        try:
+            cw_result = self._cw.run("irm -r %s" % complete_path)
+
+            if cw_result.returncode != 0:
+                raise Exception("Could not remove directory %s, errorcode %s: %s"\
+                                    % (complete_path, str(cw_result.returncode),
+                                       cw_result))
+
+        except Exception, ex:
+            # was there no directory to delete?
+            if "does not exist" in str(ex):
+                self.log_error_and_raise(bliss.saga.Error.AlreadyExists,
+                                         "Directory %s does not exist."\
+                                         % (complete_path) )
+
+            # couldn't delete for unspecificed reason
+            self.log_error_and_raise(bliss.saga.Error.NoSuccess,
+                                     "Couldn't delete directory %s"\
+                                     % (complete_path))
         return
 
         # if path != None:
