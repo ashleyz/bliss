@@ -17,8 +17,9 @@ from bliss.saga.Error import Error as SAGAError
 import errno
 import logging
 
-#class to hold info on a file or directory
-class irods_entry():
+class irods_logical_entry():
+    '''class to hold info on an iRODS logical file or directory
+    '''
     def __init__(self):
         self.name = "undefined"
         self.locations = []
@@ -35,7 +36,64 @@ class irods_entry():
                    self.date + " " + \
                    str(self.is_directory))
 
-def irods_get_listing(plugin, dir):
+class irods_resource_entry():
+    '''class to hold info on an iRODS resource
+    '''
+    # Resources (not groups) as retreived from ilsresc -l look like the following:
+    # resource name: BNL_ATLAS_2_FTP
+    # resc id: 16214
+    # zone: osg
+    # type: MSS universal driver
+    # class: compound
+    # location: gw014k1.fnal.gov
+    # vault: /data/cache/BNL_ATLAS_2_FTPplaceholder
+    # free space:
+    # status: up
+    # info:
+    # comment:
+    # create time: 01343055975: 2012-07-23.09:06:15
+    # modify time: 01347480717: 2012-09-12.14:11:57
+    # ----
+
+    # Resource groups look like this (shortened):
+    
+    # resource group: osgGridFtpGroup
+    # Includes resource: NWICG_NotreDame_FTP
+    # Includes resource: UCSDT2-B_FTP
+    # Includes resource: UFlorida-SSERCA_FTP
+    # Includes resource: cinvestav_FTP
+    # Includes resource: SPRACE_FTP
+    # Includes resource: NYSGRID_CORNELL_NYS1_FTP
+    # Includes resource: Nebraska_FTP
+    # -----
+
+    def __init__(self):
+        #are we a resource group? 
+        self.is_resource_group = False
+
+        #individual resource-specific properties
+        self.name = "undefined"
+        self.zone = "undefined"
+        self.type = "undefined"
+        self.resource_class = "undefined"
+        self.location = "undefined"
+        self.vault = "undefined"
+        self.free_space = 123456789
+        self.status = "undefined"
+        self.info = "undefined"
+        self.comment = "undefined"
+        self.create_time = "undefined"
+        self.modify_time = "undefined"
+
+        #resource group-specific properties
+        self.group_members = []
+
+def irods_get_directory_listing(plugin, dir):
+    '''function takes an iRODS logical directory as an argument,
+       and returns a list of irods_logical_entry instances containing
+       information on files/directories found in the directory argument
+    '''
+
     result = []
     try:
         cw = CommandWrapper.initAsLocalWrapper(None)
@@ -48,7 +106,8 @@ def irods_get_listing(plugin, dir):
         if cw_result.returncode != 0:
             raise Exception("Could not open directory")
 
-        # strip extra linebreaks from stdout, make a list w/ linebreaks, skip first entry which tells us the current directory
+        # strip extra linebreaks from stdout, make a list from the linebreaks that
+        # remain, skip first entry which just tells us the current directory
         for item in cw_result.stdout.strip().split("\n"):
 
             # if we are listing a directory or remote resource file location i.e.
@@ -65,7 +124,7 @@ def irods_get_listing(plugin, dir):
             item = item.strip()
 
             #entry for file or directory
-            dir_entry = irods_entry()
+            dir_entry = irods_logical_entry()
             
             #if we have a directory here
             if item.startswith("C- "):
@@ -86,10 +145,8 @@ def irods_get_listing(plugin, dir):
 
             result.append(dir_entry)
 
-        # TODO: merge all entries on the list with duplicate filenames into a
-        #       single entry, and use the locations attribute
-        #       to keep track of where they're saved
-
+        # merge all entries on the list with duplicate filenames into a
+        # single entry with one filename and multiple resource locations
         final_list = []
         for item in result:
             if item.name in [i.name for i in final_list]:
@@ -99,14 +156,99 @@ def irods_get_listing(plugin, dir):
                         final_list_item.locations.append(item.locations[0])
             else:
                 final_list.append(item)
-
-        unique_name = list(set([i.name for i in final_list]))
         return final_list
 
     except Exception, e:
         plugin.log_error_and_raise(bliss.saga.Error.NoSuccess, "Couldn't get directory listing: %s " % (str(e)))
 
     return result
+
+def irods_get_resource_listing(plugin):
+    ''' Return a list of irods resources and resource groups with information
+        stored in irods_resource_entry format
+    '''
+    result = []
+    try:
+        cw = CommandWrapper.initAsLocalWrapper(None)
+        cw.connect()
+
+        # execute the ilsresc -l command
+        cw_result = cw.run("ilsresc -l")
+
+        # make sure we ran ok
+        if cw_result.returncode != 0:
+            raise Exception("Could not obtain list of resources with ilsresc -l")
+
+        # convert our command's stdout to a list of text lines
+        cw_result_list = cw_result.stdout.strip().split("\n")
+
+        # list of resource entries we will save our results to
+        result = []
+
+        # while loop instead of for loop so we can mutate the list
+        # as we iterate
+        while cw_result_list:
+            entry = irods_resource_entry()
+            
+            # get our next line from the FRONT of the list
+            line = cw_result_list.pop(0)
+            
+            # check to see if this is the beginning of a
+            # singular resource entry 
+            if line.startswith("resource name: "):
+                # singular resource entry output from ilsresc -l
+                # LINE NUMBERS AND PADDING ADDED
+                # ex. actual output, line 0 starts like "resource name"
+                # 0  resource name: BNL_ATLAS_2_FTP
+                # 1  resc id: 16214
+                # 2  zone: osg
+                # 3  type: MSS universal driver
+                # 4  class: compound
+                # 5  location: gw014k1.fnal.gov
+                # 6  vault: /data/cache/BNL_ATLAS_2_FTPplaceholder
+                # 7  free space:
+                # 8  status: up
+                # 9  info:
+                # 10 comment:
+                # 11 create time: 01343055975: 2012-07-23.09:06:15
+                # 12 modify time: 01347480717: 2012-09-12.14:11:57
+                # 13 ----
+                entry.name = line[len("resource name: "):].strip()
+                entry.is_resource_group = False
+
+                # TODO: SAVE ALL THE OTHER INFO
+                for i in range(13):
+                    cw_result_list.pop(0)
+
+                #add our resource to the list
+                result.append(entry)
+
+            # check to see if this is an entry for a resource group
+            elif line.startswith("resource group: "):
+                entry.name = line[len("resource group: "):].strip()
+                entry.is_resource_group = True
+
+                # continue processing ilsresc -l results until we
+                # are at the end of the resource group information
+                # ----- is not printed if there are no further entries
+                # so we have to make sure to check we don't pop off an empty
+                # stack too
+                while len(cw_result_list)>0 and (not line.startswith("-----")):
+                    line=cw_result_list.pop(0)
+
+                result.append(entry)
+
+            # for some reason, we're at a line which we have no idea how to handle
+            # this is bad -- throw an error
+            else:
+                plugin.log_error(bliss.saga.Error.NoSuccess, "Error parsing iRODS"+\
+                                     " ilsresc -l information!")
+                raise ("ilsresc -l parsing error")
+                
+        return result
+
+    except Exception, e:
+        plugin.log_error_and_raise(bliss.saga.Error.NoSuccess, "Couldn't get resource listing: %s " % (str(e)))
 
 
 ################################################################################
@@ -142,25 +284,19 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         cw = CommandWrapper.initAsLocalWrapper(logger=self)
         cw.connect()
 
-        # run ils, see if we get any errors -- if so, 
+        # run ils, see if we get any errors -- if so, fail the
+        # sanity check
         try:
             result = cw.run("ils")
             if result.returncode != 0:
-                #print "Error running ils to check for a working iRODS environment "+\
-                #    "- check your iRODS configuration and certificates. "+\
-                #    "%s"  % (result.stdout)
-                raise Exception("Cats")
+                raise Exception("sanity check error")
         except Exception, ex:
             raise Exception("Disabling iRODS plugin - could not access iRODS "+\
                             "filesystem through ils.  Check your iRODS "+\
                             "environment and certificates.")
         # try ienv or imiscsvrinfo later? ( check for error messages )
-
         return
-        #try:
-        #    import lfc2
-        #except Exception, ex:
-        #    raise Exception("lfc2 module missing")
+
             
     ######################################################################
     ##  
@@ -249,7 +385,8 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         '''Implements interface from FilesystemPluginInterface
         '''
         path = file_obj._url.get_path()
-        listing = irods_get_listing(self, path)
+        listing = irods_get_directory_listing(self, path)
+
         return listing[0].size
 
         # complete_url = str(file_obj._url)
@@ -338,7 +475,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         #return a list of all locations the file is located at
 
         path = logicalfile_obj._url.get_path()
-        listing = irods_get_listing(self, path)
+        listing = irods_get_directory_listing(self, path)
         return listing[0].locations
 
 
