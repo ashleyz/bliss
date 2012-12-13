@@ -6,6 +6,7 @@ __copyright__ = "Copyright 2012, Ashley Zebrowski"
 __license__   = "MIT"
 
 from bliss.interface import LogicalFilePluginInterface
+from bliss.interface import ResourcePluginInterface
 from bliss.utils.command_wrapper import CommandWrapper, CommandWrapperException
 
 import os, pwd
@@ -14,7 +15,6 @@ import time
 import bliss.saga
 from bliss.saga.Error import Error as SAGAError
 import errno
-
 import logging
 
 #class to hold info on a file or directory
@@ -124,7 +124,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
 
     ## Define apis supported by this adaptor
     ##
-    _apis = ['saga.logicalfile']
+    _apis = ['saga.logicalfile', 'saga.resource']
 
     ##
     def __init__(self, url):
@@ -141,11 +141,19 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         '''
         cw = CommandWrapper.initAsLocalWrapper(logger=self)
         cw.connect()
-        result = cw.run("which ils")
-        if result.returncode != 0:
-            print "Couldn't locate iRODS commandline tools: %s"  % (result.stdout)
-        print result.returncode
-        
+
+        # run ils, see if we get any errors -- if so, 
+        try:
+            result = cw.run("ils")
+            if result.returncode != 0:
+                #print "Error running ils to check for a working iRODS environment "+\
+                #    "- check your iRODS configuration and certificates. "+\
+                #    "%s"  % (result.stdout)
+                raise Exception("Cats")
+        except Exception, ex:
+            raise Exception("Disabling iRODS plugin - could not access iRODS "+\
+                            "filesystem through ils.  Check your iRODS "+\
+                            "environment and certificates.")
         # try ienv or imiscsvrinfo later? ( check for error messages )
 
         return
@@ -326,6 +334,8 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     def logicalfile_list_locations(self, logicalfile_obj):
         '''This method is called upon logicaldir.list_locations()
         '''
+
+        #return a list of all locations the file is located at
 
         path = logicalfile_obj._url.get_path()
         listing = irods_get_listing(self, path)
