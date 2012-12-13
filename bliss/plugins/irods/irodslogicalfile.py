@@ -233,6 +233,8 @@ def irods_get_resource_listing(plugin):
                 # ----- is not printed if there are no further entries
                 # so we have to make sure to check we don't pop off an empty
                 # stack too
+                #
+                # TODO: ACTUALLY SAVE THE LIST OF RESOURCES IN A RESOURCE GROUP
                 while len(cw_result_list)>0 and (not line.startswith("-----")):
                     line=cw_result_list.pop(0)
 
@@ -273,6 +275,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         '''Class constructor'''
         LogicalFilePluginInterface.__init__(self, name=self._name, schemas=self._schemas)
         
+        # store a commandwrapper to run our iRODS commands through
         cw = CommandWrapper.initAsLocalWrapper(logger=self)
         cw.connect()
         self._cw = cw
@@ -296,7 +299,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
                             "environment and certificates.")
         # try ienv or imiscsvrinfo later? ( check for error messages )
         return
-
             
     ######################################################################
     ##  
@@ -378,7 +380,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
 
         return result
 
-
     ######################################################################
     ## 
 
@@ -388,7 +389,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         path = file_obj._url.get_path()
         listing = irods_get_directory_listing(self, path)
         return listing[0].size
-
 
     ######################################################################
     ##
@@ -437,7 +437,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         except Exception, ex:
             # was there no directory to delete?
             if "does not exist" in str(ex):
-                self.log_error_and_raise(bliss.saga.Error.AlreadyExists,
+                self.log_error_and_raise(bliss.saga.Error.DoesNotExist,
                                          "Directory %s does not exist."\
                                          % (complete_path) )
 
@@ -446,32 +446,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
                                      "Couldn't delete directory %s"\
                                      % (complete_path))
         return
-
-        # if path != None:
-        #     complete_path = os.path.join(dir_obj._url.path, path)
-        #     complete_url = str(dir_obj._url) + '/' + path
-        # else:
-        #     complete_path = dir_obj._url.path
-        #     complete_url = str(dir_obj._url)
-
-        # # LOCAL FILESYSTEM
-        # if dir_obj.is_local:
-        #     from shutil import rmtree
-        #     return rmtree(complete_path)
-
-        # # REMOTE FILESYSTEM VIA GFAL
-        # else:
-        #     try:
-        #         self.log_info("Trying to (recursively) RMDIR '%s'" % (complete_url))
-        #         # TODO: recursive
-
-        #         lcg_rmdir(complete_url)
-
-        #     except Exception, ex:
-        #         self.log_error_and_raise(bliss.saga.Error.NoSuccess,
-        #          "Couldn't remove directory '%s': %s " % (complete_url, str(ex)))
-
-    
 
     ######################################################################
     ##
@@ -506,8 +480,8 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     ##
     def logicalfile_remove_location(self, logicalfile_obj, location):
         '''This method is called upon logicaldir.remove_locations()
-        '''
-
+        '''     
+        self.log_error_and_raise(SAGAError.NotImplemented, "Not implemented")
         return
 
         # complete_path = str(logicalfile_obj._url.path)
@@ -535,7 +509,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     def logicalfile_add_location(self, logicalfile_obj, location):
         '''This method is called upon logicaldir.add_location()
         '''
-
+        self.log_error_and_raise(SAGAError.NotImplemented, "Not implemented")
         return
 
         # lfn = str(logicalfile_obj._url.path)
@@ -558,3 +532,18 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         #     print 'UnboundLocalError during lfc_addreplica'
         # except Exception:
         #    print 'Unknown Error during lfc_addreplica:', sys.exc_info()[0]
+
+    ######################################################################
+    ##   
+    # myfile.upload("file://home/ashley/my/local/filesystem/irods.tar.gz",
+    #               "irods://.../?resource=host3")
+    #
+    # So, if you want to have a logical file in that logical dir, you would create it:
+    # myfile = mydir.open (irods.tar.gz, saga.replica.Create |
+    #                      saga.replica.ReadWrite)
+    # and then upload
+    # myfile.upload ("file://home/ashley/my/local/filesystem/irods.tar.gz")
+
+    def file_upload(self, logicalfile_obj, source, target):
+        self.log_error_and_raise(SAGAError.NotImplemented, "Not implemented")
+        return

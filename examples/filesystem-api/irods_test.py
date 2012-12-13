@@ -26,14 +26,16 @@ def main():
         mydir = saga.logicalfile.LogicalDirectory('irods:///osg/home/azebro1') 
         #mydir_wrong = saga.logicalfile.LogicalDirectory('lfn://lfc.grid.sara.nl:5010/grid/vlemed/mark/bliss-non-exist') 
 
-        print "Printing results"
-        
+        print "Printing directory listing"
         for entry in mydir.list():
             print entry
 
         myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/irods-test.txt')
+        
+        print "size of test file"
         print myfile.get_size()
 
+        print "locations the file is stored at:"
         print myfile.list_locations()
 
         print "Making test dir"
@@ -42,8 +44,11 @@ def main():
         print "Deleting test dir"
         mydir.remove("irods:///osg/home/azebro1/irods-test-dir/")
 
+        print "Uploading file"
+        mydir.upload("cats", "dogs")
+
     except saga.Exception, ex:
-        print "An error occured during file operation: %s" % (str(ex))
+        print "An error occured while executing the test script! %s" % (str(ex))
         sys.exit(-1)
 
     print "test script finished execution"
