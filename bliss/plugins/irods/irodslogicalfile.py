@@ -13,6 +13,7 @@ import os, pwd
 import sys
 import time
 import bliss.saga
+import string
 from bliss.saga.Error import Error as SAGAError
 import errno
 import logging
@@ -569,21 +570,33 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     # OR (revised)
     # myfile.upload("file://home/ashley/my/local/filesystem/irods.tar.gz",
     #               "irods://.../?resource=host3")
+    #
+    # THIS IS A FUNCTION FOR A **PROPOSED** PART OF THE SAGA API!!!
+    # HERE BE DRAGONS, in other words...
 
     def file_upload(self, logicalfile_obj, source, target=None):
         #TODO: Make sure that the source URL is a local/file:// URL
         complete_path = bliss.saga.Url(source).get_path()
+        
+        # extract the path from the LogicalFile object, excluding
+        # the filename
+        destination_path=logicalfile_obj._url.get_path()[0:string.rfind(
+                         logicalfile_obj._url.get_path(), "/")+1]
+
         try:
             #var to hold our command result, placed here to keep in scope
             cw_result = 0
             
             #mark that this is experimental/may not be part of official API
-            self.log_debug("Beginning EXPERIMENTAL upload operation")
+            self.log_debug("Beginning EXPERIMENTAL upload operation " +\
+                           "will register file in logical dir: %s" %
+                           destination_path)
 
             # was no resource selected?
             if target==None:
                 self.log_debug("Attempting to upload to default resource")
-                cw_result = self._cw.run("iput %s" % complete_path)
+                cw_result = self._cw.run("iput %s %s" %
+                                         (complete_path, destination_path))
 
             # resource was selected, have to parse it and supply to iput -R
             else:
@@ -591,7 +604,8 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
                 query = bliss.saga.Url(target).get_query()
                 resource = query.split("=")[1]
                 self.log_debug("Attempting to upload to resource %s" % resource)
-                cw_result = self._cw.run("iput -R %s %s" % (resource, complete_path))
+                cw_result = self._cw.run("iput -R %s %s %s" %
+                                         (resource, complete_path, destination_path))
 
             # check our result
             if cw_result.returncode != 0:
