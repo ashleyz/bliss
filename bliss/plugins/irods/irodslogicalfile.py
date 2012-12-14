@@ -399,6 +399,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         complete_path = bliss.saga.Url(path).get_path()
         self.log_debug("Attempting to make directory at: %s" % complete_path)
 
+        #attempt to run iRODS mkdir command
         try:
             cw_result = self._cw.run("imkdir %s" % complete_path)
 
@@ -535,15 +536,47 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
 
     ######################################################################
     ##   
-    # myfile.upload("file://home/ashley/my/local/filesystem/irods.tar.gz",
-    #               "irods://.../?resource=host3")
     #
     # So, if you want to have a logical file in that logical dir, you would create it:
     # myfile = mydir.open (irods.tar.gz, saga.replica.Create |
     #                      saga.replica.ReadWrite)
     # and then upload
     # myfile.upload ("file://home/ashley/my/local/filesystem/irods.tar.gz")
+    # OR (revised)
+    # myfile.upload("file://home/ashley/my/local/filesystem/irods.tar.gz",
+    #               "irods://.../?resource=host3")
 
-    def file_upload(self, logicalfile_obj, source, target):
-        self.log_error_and_raise(SAGAError.NotImplemented, "Not implemented")
+    def file_upload(self, logicalfile_obj, source, target=None):
+        #TODO: Make sure that the source URL is a local/file:// URL
+        complete_path = bliss.saga.Url(source).get_path()
+        try:
+            #var to hold our command result, placed here to keep in scope
+            cw_result = 0
+            
+            #mark that this is experimental/may not be part of official API
+            self.log_debug("Beginning EXPERIMENTAL upload operation")
+
+            # was no resource selected?
+            if target==None:
+                self.log_debug("Attempting to upload to default resource")
+                cw_result = self._cw.run("iput %s" % complete_path)
+
+            # resource was selected, have to parse it and supply to iput -R
+            else:
+                #TODO: Verify correctness
+                query = bliss.saga.Url(target).get_query()
+                resource = query.split("=")[1]
+                self.log_debug("Attempting to upload to resource %s" % resource)
+                cw_result = self._cw.run("iput -R %s %s" % (resource, complete_path))
+
+            # check our result
+            if cw_result.returncode != 0:
+                raise Exception("Could not upload file %s, errorcode %s: %s"\
+                                    % (complete_path, str(cw_result.returncode),
+                                       cw_result))
+
+        except Exception, ex:
+            # couldn't upload for unspecificed reason
+            self.log_error_and_raise(bliss.saga.Error.NoSuccess,
+                                     "Couldn't upload file.")
         return

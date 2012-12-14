@@ -45,7 +45,8 @@ def main():
         mydir.remove("irods:///osg/home/azebro1/irods-test-dir/")
 
         print "Uploading file"
-        mydir.upload("cats", "dogs")
+        mydir.upload("/home/azebro1/PyRods-3.1.0.tar.gz", \
+                     "irods:///this/path/is/ignored/?resource=Firefly")
 
     except saga.Exception, ex:
         print "An error occured while executing the test script! %s" % (str(ex))
