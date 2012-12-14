@@ -534,6 +534,13 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         # except Exception:
         #    print 'Unknown Error during lfc_addreplica:', sys.exc_info()[0]
 
+    def file_remove(self, logicalfile_obj):
+        '''This method is called upon logicalfile.remove()
+        '''
+        self.log_error_and_raise(SAGAError.NotImplemented, "Not implemented")
+        return
+
+
     ######################################################################
     ##   
     #
