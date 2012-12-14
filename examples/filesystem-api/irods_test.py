@@ -30,6 +30,7 @@ def main():
         for entry in mydir.list():
             print entry
 
+        print "Creating file object"
         myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/irods-test.txt')
         
         print "size of test file"
@@ -45,10 +46,11 @@ def main():
         mydir.remove("irods:///osg/home/azebro1/irods-test-dir/")
 
         print "Uploading file"
-        myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/irods-test.txt')
+        myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/PyRods-3.1.0.tar.gz')
         myfile.upload("/home/azebro1/PyRods-3.1.0.tar.gz", \
                      "irods:///this/path/is/ignored/?resource=Firefly")
 
+        print "Deleting file"
         myfile.remove()
 
         print "Deleting file"

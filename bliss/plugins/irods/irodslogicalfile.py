@@ -104,7 +104,9 @@ def irods_get_directory_listing(plugin, dir):
 
         # make sure we ran ok
         if cw_result.returncode != 0:
-            raise Exception("Could not open directory")
+            raise Exception("Could not open directory %s, errorcode %s: %s"\
+                                    % (dir, str(cw_result.returncode),
+                                       cw_result))
 
         # strip extra linebreaks from stdout, make a list from the linebreaks that
         # remain, skip first entry which just tells us the current directory
@@ -537,7 +539,22 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     def file_remove(self, logicalfile_obj):
         '''This method is called upon logicalfile.remove()
         '''
-        self.log_error_and_raise(SAGAError.NotImplemented, "Not implemented")
+        complete_path = logicalfile_obj._url.get_path()
+        self.log_debug("Attempting to remove file at: %s" % complete_path)
+
+        try:
+            cw_result = self._cw.run("irm %s" % complete_path)
+
+            if cw_result.returncode != 0:
+                raise Exception("Could not remove file %s, errorcode %s: %s"\
+                                    % (complete_path, str(cw_result.returncode),
+                                       cw_result))
+
+        except Exception, ex:
+            # couldn't delete for unspecificed reason
+            self.log_error_and_raise(bliss.saga.Error.NoSuccess,
+                                     "Couldn't delete file %s"\
+                                     % (complete_path))
         return
 
 
