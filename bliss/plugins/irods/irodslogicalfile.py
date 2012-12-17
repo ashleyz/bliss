@@ -362,25 +362,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         except Exception, ex:
             self.log_error_and_raise(bliss.saga.Error.NoSuccess, "Couldn't list directory: %s " % (str(ex)))
 
-        # try:
-        #     self.log_info("Trying to LSDIR '%s'" % (complete_path))
-
-        #     dir = lfc.lfc_opendir(complete_path)
-        #     if dir == None:
-        #         raise Exception('Could not open dir')
-
-        #     while True:
-        #         entry = lfc.lfc_readdirxr(dir)
-        #         if entry == None:
-        #             break
-        #         result.append(entry.d_name)
-
-        #     lfc.lfc_closedir(dir)
-
-        # except Exception, ex:
-        #     self.log_error_and_raise(bliss.saga.Error.NoSuccess,
-        #     "Couldn't list directory: %s " % (str(ex)))
-
         return result
 
     ######################################################################
@@ -464,23 +445,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         listing = irods_get_directory_listing(self, path)
         return listing[0].locations
 
-
-        # complete_path = logicalfile_obj._url.path
-        # result = []
-
-        # try:
-        #     list = lfc.lfc_getreplica(complete_path, None, None)
-
-        #     for i in list:
-        #         #print i.host, i.sfn, i.status, i.fs, i.poolname, \
-        #         #      i.fileid, i.nbaccesses, i.f_type
-        #         result.append(i.sfn)
-
-        # except Exception, ex:
-        #     print ex
-        
-        # return result
-
     ######################################################################
     ##
     def logicalfile_remove_location(self, logicalfile_obj, location):
@@ -488,25 +452,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         '''     
         self.log_error_and_raise(SAGAError.NotImplemented, "Not implemented")
         return
-
-        # complete_path = str(logicalfile_obj._url.path)
-
-        # try:
-        #     stat = lfc.lfc_statg(complete_path, '')
-        #     guid = stat.guid
-        # except Exception, ex:
-        #     print 'Error during lfc_statg:', ex
-
-        # try:
-        #     lfc.lfc_delreplica(guid, None, location)
-        # except ValueError:
-        #     print 'Value Error during lfc_delreplica: (replica not existing?)'
-        # except SyntaxError:
-        #     print 'SyntexError during lfc_delreplica (wrong guid?)'
-        # except UnboundLocalError:
-        #     print 'UnboundLocalError during lfc_delreplica: (wrong lfn?)'
-        # except Exception:
-        #     print 'Unknown Error during lfc_delreplica:', sys.exc_info()[0]
 
     ######################################################################
     ##
@@ -569,27 +514,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         '''
         self.log_error_and_raise(SAGAError.NotImplemented, "Not implemented")
         return
-
-        # lfn = str(logicalfile_obj._url.path)
-
-        # try:
-        #     stat = lfc.lfc_statg(lfn, '')
-        #     guid = stat.guid
-        # except Exception, ex:
-        #     print 'Error during lfc_statg:', ex
-
-        # se = location
-        # sfn = None
-        # try:
-        #     lfc.lfc_addreplica(guid, None, 'srm.grid.sara.nl', se, '-', 'D', '', '')
-        # except ValueError:
-        #     print 'Value Error during lfc_addreplica (replica already existing)'
-        # except SyntaxError:
-        #     print 'SyntexError during lfc_addreplica'
-        # except UnboundLocalError:
-        #     print 'UnboundLocalError during lfc_addreplica'
-        # except Exception:
-        #    print 'Unknown Error during lfc_addreplica:', sys.exc_info()[0]
 
     ######################################################################
     ##
