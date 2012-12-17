@@ -18,40 +18,54 @@ __license__   = "MIT"
 
 import sys, time
 import bliss.saga as saga
+import os
 
-def main():
-    
+FILE_SIZE = 100 # in megs, approx
+NUM_REPLICAS = 2 # num replicas to create
+TEMP_FILENAME = "test.txt" # filename to use for testing
+def main():  
     try:
+        # grab our home directory (tested on Linux)
+        home_dir = os.path.expanduser("~"+"/")
+        print "Creating temporary file of size %dM : %s" % \
+            (FILE_SIZE, home_dir+TEMP_FILENAME)
+
+        # create a file for us to use with iRODS
+        with open(home_dir+TEMP_FILENAME, "wb") as f:
+            f.write ("x" * (FILE_SIZE * pow(2,20)) )
+
         print "Creating iRODS directory object"
         mydir = saga.logicalfile.LogicalDirectory('irods:///osg/home/azebro1') 
-        #mydir_wrong = saga.logicalfile.LogicalDirectory('lfn://lfc.grid.sara.nl:5010/grid/vlemed/mark/bliss-non-exist') 
 
-        print "Printing directory listing"
+        print "Printing iRODS directory listing"
         for entry in mydir.list():
             print entry
 
-        print "Creating file object"
+        print "Creating iRODS file object"
         myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/irods-test.txt')
         
-        print "size of test file"
+        print "Size of test file on iRODS"
         print myfile.get_size()
 
-        print "locations the file is stored at:"
+        print "Locations the file is stored at on iRODS:"
         print myfile.list_locations()
 
-        print "Making test dir"
+        print "Making test dir on iRODS"
         mydir.make_dir("irods:///osg/home/azebro1/irods-test-dir/")
 
-        print "Deleting test dir"
+        print "Deleting test dir from iRODS"
         mydir.remove("irods:///osg/home/azebro1/irods-test-dir/")
 
-        print "Uploading file"
+        print "Uploading file to iRODS"
         myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/testdir/PyRods-3.1.0.tar.gz')
         myfile.upload("/home/azebro1/PyRods-3.1.0.tar.gz", \
                      "irods:///this/path/is/ignored/?resource=Firefly")
 
-        print "Deleting file"
+        print "Deleting file from iRODS"
         myfile.remove()
+
+        print "Deleting file locally : %s" % (home_dir + TEMP_FILENAME)
+        os.remove(home_dir + TEMP_FILENAME)
 
     except saga.Exception, ex:
         print "An error occured while executing the test script! %s" % (str(ex))
