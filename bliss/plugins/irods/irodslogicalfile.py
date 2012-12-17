@@ -507,6 +507,33 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         # except Exception:
         #     print 'Unknown Error during lfc_delreplica:', sys.exc_info()[0]
 
+    ######################################################################
+    ##
+    def logicalfile_replicate(self, logicalfile_obj, target):
+        '''This method is called upon logicaldir.remove_locations()
+        '''
+        
+        #path to file we are replicating on iRODS
+        complete_path = logicalfile_obj._url.get_path()        
+
+        #TODO: Verify Correctness in the way the resource is grabbed
+        query = bliss.saga.Url(target).get_query()
+        resource = query.split("=")[1]
+        self.log_debug("Attempting to replicate logical file %s to resource/resource group %s" % (complete_path, resource))
+
+        try:
+            cw_result = self._cw.run("irepl -R %s %s" % (resource, complete_path) )
+
+            if cw_result.returncode != 0:
+                raise Exception("Could not replicate logical file %s to resource/resource group %s, errorcode %s: %s"\
+                                    % (complete_path, resource, str(cw_result.returncode),
+                                       cw_result))
+
+        except Exception, ex:
+            self.log_error_and_raise(bliss.saga.Error.NoSuccess,
+                                     "Couldn't replicate file.")
+        return
+
 
     ######################################################################
     ##
@@ -537,6 +564,10 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         # except Exception:
         #    print 'Unknown Error during lfc_addreplica:', sys.exc_info()[0]
 
+    ######################################################################
+    ##
+    # THIS IS A FUNCTION FOR A **PROPOSED** PART OF THE SAGA API!!!
+    # HERE BE DRAGONS, in other words...
     def file_remove(self, logicalfile_obj):
         '''This method is called upon logicalfile.remove()
         '''
@@ -570,7 +601,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     # OR (revised)
     # myfile.upload("file://home/ashley/my/local/filesystem/irods.tar.gz",
     #               "irods://.../?resource=host3")
-    #
+    # 
     # THIS IS A FUNCTION FOR A **PROPOSED** PART OF THE SAGA API!!!
     # HERE BE DRAGONS, in other words...
 

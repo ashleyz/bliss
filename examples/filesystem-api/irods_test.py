@@ -20,10 +20,14 @@ import sys, time
 import bliss.saga as saga
 import os
 
-FILE_SIZE = 100 # in megs, approx
-NUM_REPLICAS = 2 # num replicas to create
+FILE_SIZE = 1 # in megs, approx
+NUM_REPLICAS = 5 # num replicas to create
 TEMP_FILENAME = "test.txt" # filename to use for testing
-def main():  
+IRODS_DIRECTORY = "/osg/home/azebro1/" #directory to store our iRODS files in, don't forget trailing /
+IRODS_RESOURCE = "osgGridFtpGroup" #iRODS resource or resource group to upload files to
+
+def main():
+    # make sure we have a trailing / at the end of our iRODS directory name
     try:
         # grab our home directory (tested on Linux)
         home_dir = os.path.expanduser("~"+"/")
@@ -35,33 +39,41 @@ def main():
             f.write ("x" * (FILE_SIZE * pow(2,20)) )
 
         print "Creating iRODS directory object"
-        mydir = saga.logicalfile.LogicalDirectory('irods:///osg/home/azebro1') 
+        mydir = saga.logicalfile.LogicalDirectory("irods://" + IRODS_DIRECTORY) 
 
-        print "Printing iRODS directory listing"
+        print "Uploading file to iRODS"
+        myfile = saga.logicalfile.LogicalFile('irods://'+IRODS_DIRECTORY+TEMP_FILENAME)
+        myfile.upload(home_dir + TEMP_FILENAME, \
+                     "irods:///this/path/is/ignored/?resource="+IRODS_RESOURCE)
+
+        print "Printing iRODS directory listing for %s " % ("irods://" + IRODS_DIRECTORY)
         for entry in mydir.list():
             print entry
 
         print "Creating iRODS file object"
-        myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/irods-test.txt')
+        myfile = saga.logicalfile.LogicalFile('irods://' + IRODS_DIRECTORY+TEMP_FILENAME)
         
-        print "Size of test file on iRODS"
+        print "Size of test file on iRODS in bytes:"
         print myfile.get_size()
 
+        print "Creating",NUM_REPLICAS,"replicas for",IRODS_DIRECTORY+TEMP_FILENAME
+        for i in range(NUM_REPLICAS):
+            myfile.replicate("irods:///this/path/is/ignored/?resource="+IRODS_RESOURCE)
+
         print "Locations the file is stored at on iRODS:"
-        print myfile.list_locations()
+        for entry in myfile.list_locations():
+            print entry
 
         print "Making test dir on iRODS"
-        mydir.make_dir("irods:///osg/home/azebro1/irods-test-dir/")
+        mydir.make_dir("irods://"+IRODS_DIRECTORY+"/irods-test-dir/")
+
+        print "Moving file to test dir on iRODS"
+        myfile.move("irods://"+IRODS_DIRECTORY+"/irods-test-dir/")
 
         print "Deleting test dir from iRODS"
-        mydir.remove("irods:///osg/home/azebro1/irods-test-dir/")
+        mydir.remove("irods://"+IRODS_DIRECTORY+"/irods-test-dir/")
 
-        print "Uploading file to iRODS"
-        myfile = saga.logicalfile.LogicalFile('irods:///osg/home/azebro1/testdir/PyRods-3.1.0.tar.gz')
-        myfile.upload("/home/azebro1/PyRods-3.1.0.tar.gz", \
-                     "irods:///this/path/is/ignored/?resource=Firefly")
-
-        print "Deleting file from iRODS"
+        print "Deleting file %s from iRODS" % (IRODS_DIRECTORY+TEMP_FILENAME)
         myfile.remove()
 
         print "Deleting file locally : %s" % (home_dir + TEMP_FILENAME)
