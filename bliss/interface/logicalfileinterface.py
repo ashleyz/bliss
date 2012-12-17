@@ -108,13 +108,15 @@ class LogicalFilePluginInterface(PluginBaseInterface):
         errormsg = "Not implemented plugin method called: logicaldir_make_dir()"
         self.log_error_and_raise(SAGAError.NotImplemented, errormsg)
 
-    def upload(self, source, target):
+    #EXPERIMENTAL function, not part of official SAGA API!
+    def logicalfile_upload(self, source, target):
         '''This method is called upon logicalfile.upload()
         ''' 
         errormsg = "Not implemented plugin method called: logicalfile_upload()"
         self.log_error_and_raise(SAGAError.NotImplemented, errormsg)
 
-    def download(self, target):
+    #EXPERIMENTAL function, not part of official SAGA API!
+    def logicalfile_download(self, target):
         '''This method is called upon logicalfile.download()
         ''' 
         errormsg = "Not implemented plugin method called: logicalfile_download()"

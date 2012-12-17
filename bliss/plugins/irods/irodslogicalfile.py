@@ -555,7 +555,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     # THIS IS A FUNCTION FOR A **PROPOSED** PART OF THE SAGA API!!!
     # HERE BE DRAGONS, in other words...
 
-    def file_upload(self, logicalfile_obj, source, target=None):
+    def logicalfile_upload(self, logicalfile_obj, source, target=None):
         '''Uploads a file from the LOCAL, PHYSICAL filesystem to
            the replica management system.
            @param source: URL (should be file:// or local path) of local file
@@ -613,7 +613,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     # THIS IS A FUNCTION FOR A **PROPOSED** PART OF THE SAGA API!!!
     # HERE BE DRAGONS, in other words...
 
-    def file_download(self, logicalfile_obj, target=None):
+    def logicalfile_download(self, logicalfile_obj, target=None):
         '''Downloads a file from the REMOTE REPLICA FILESYSTEM to a local
            directory.
            @param target: Optional param containing a local path/filename

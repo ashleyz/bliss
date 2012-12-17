@@ -215,7 +215,7 @@ class LogicalFile(Object):
             raise bliss.saga.Exception(bliss.saga.Error.NoSuccess,
               "Object not bound to a plugin")
         else:
-            return self._plugin.file_upload(self, source, target)
+            return self._plugin.logicalfile_upload(self, source, target)
 
     ######################################################################
     ##
@@ -230,4 +230,4 @@ class LogicalFile(Object):
             raise bliss.saga.Exception(bliss.saga.Error.NoSuccess,
               "Object not bound to a plugin")
         else:
-            return self._plugin.file_download(self, target)
+            return self._plugin.logicalfile_download(self, target)
