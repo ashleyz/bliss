@@ -210,17 +210,24 @@ class LogicalFile(Object):
         '''Copy a file from local, physical source to logical file system
            @param source: path of the file to copy
            @param target: absolute URL of target directory
-
-           The source is copied to the given logical target directory.  The path of the
-           source can be relative::
-
-               # copy a file
-               dir = saga.filesystem.Directory("sftp://localhost/tmp/")
-               dir.copy ("./data.bin", "sftp://localhost/tmp/data/")
-
         '''
         if self._plugin is None:
             raise bliss.saga.Exception(bliss.saga.Error.NoSuccess,
               "Object not bound to a plugin")
         else:
             return self._plugin.file_upload(self, source, target)
+
+    ######################################################################
+    ##
+    ## EXPERIMENTAL/PROPOSED API ADDITION
+    ## TODO: Remove if this doesn't make it into the API
+    def download(self, target=None):
+        '''Copy a file from logical file system to a local, physical file
+           @param target: absolute URL of target directory
+
+        '''
+        if self._plugin is None:
+            raise bliss.saga.Exception(bliss.saga.Error.NoSuccess,
+              "Object not bound to a plugin")
+        else:
+            return self._plugin.file_download(self, target)

@@ -47,6 +47,9 @@ def main():
         myfile.upload(home_dir + TEMP_FILENAME, \
                      "irods:///this/path/is/ignored/?resource="+IRODS_RESOURCE)
 
+        print "Deleting file locally : %s" % (home_dir + TEMP_FILENAME)
+        os.remove(home_dir + TEMP_FILENAME)
+
         print "Printing iRODS directory listing for %s " % ("irods://" + IRODS_DIRECTORY)
         for entry in mydir.list():
             print entry
@@ -54,7 +57,7 @@ def main():
         print "Creating iRODS file object"
         myfile = saga.logicalfile.LogicalFile('irods://' + IRODS_DIRECTORY+TEMP_FILENAME)
         
-        print "Size of test file on iRODS in bytes:"
+        print "Size of test file %s on iRODS in bytes:" % (IRODS_DIRECTORY + TEMP_FILENAME)
         print myfile.get_size()
 
         print "Creating",NUM_REPLICAS,"replicas for",IRODS_DIRECTORY+TEMP_FILENAME
@@ -65,9 +68,24 @@ def main():
         for entry in myfile.list_locations():
             print entry
 
+        print "Downloading logical file %s to current/default directory" % \
+            (IRODS_DIRECTORY + TEMP_FILENAME) 
+        myfile.download()
+
+        print "Downloading logical file %s to /tmp/" % \
+            (IRODS_DIRECTORY + TEMP_FILENAME) 
+        myfile.download("/tmp/")
+
+        print "Deleting downloaded file locally : %s" % (os.getcwd() + TEMP_FILENAME)
+        os.remove(os.getcwd() +"/" + TEMP_FILENAME)
+
+        print "Deleting downloaded file locally : %s" % ("/tmp" + TEMP_FILENAME)
+        os.remove("/tmp/" + TEMP_FILENAME)
+
         print "Making test dir %s on iRODS" % (IRODS_DIRECTORY+TEMP_DIR)
         mydir.make_dir("irods://"+IRODS_DIRECTORY+TEMP_DIR)
-
+        
+        #commented because iRODS install on gw68 doesn't support move
         #print "Moving file to %s test dir on iRODS" % (IRODS_DIRECTORY+TEMP_DIR)
         #myfile.move("irods://"+IRODS_DIRECTORY+TEMP_DIR)
 
@@ -76,9 +94,6 @@ def main():
 
         print "Deleting file %s from iRODS" % (IRODS_DIRECTORY+TEMP_FILENAME)
         myfile.remove()
-
-        print "Deleting file locally : %s" % (home_dir + TEMP_FILENAME)
-        os.remove(home_dir + TEMP_FILENAME)
 
     except saga.Exception, ex:
         print "An error occured while executing the test script! %s" % (str(ex))

@@ -536,6 +536,8 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
 
     ######################################################################
     ##
+    # TODO: This is COMPLETELY untested, as it is unsupported on the only iRODS
+    # machine I have access to.
     def file_move(self, logicalfile_obj, target):
         '''This method is called upon logicaldir.move()
         '''
@@ -591,8 +593,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
 
     ######################################################################
     ##
-    # THIS IS A FUNCTION FOR A **PROPOSED** PART OF THE SAGA API!!!
-    # HERE BE DRAGONS, in other words...
     def file_remove(self, logicalfile_obj):
         '''This method is called upon logicalfile.remove()
         '''
@@ -673,4 +673,54 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
             # couldn't upload for unspecificed reason
             self.log_error_and_raise(bliss.saga.Error.NoSuccess,
                                      "Couldn't upload file.")
+        return
+
+    ######################################################################
+    ##   
+    # THIS IS A FUNCTION FOR A **PROPOSED** PART OF THE SAGA API!!!
+    # HERE BE DRAGONS, in other words...
+
+    def file_download(self, logicalfile_obj, target=None):
+        #TODO: Make sure that the target URL is a local/file:// URL
+        # extract the path from the LogicalFile object, excluding
+        # the filename
+        logical_path=logicalfile_obj._url.get_path()
+        #[0:string.rfind(logicalfile_obj._url.get_path(), "/")+1]
+
+        local_path = ""
+        if target:
+            local_path = bliss.saga.Url(target).get_path()
+        
+        try:
+            #var to hold our command result, placed here to keep in scope
+            cw_result = 0
+            
+            #mark that this is experimental/may not be part of official API
+            self.log_debug("Beginning EXPERIMENTAL download operation " +\
+                           "will download logical file: %s, specified local directory is %s" %
+                           (logical_path, target) )
+
+            # was no local target selected?
+            if target==None:
+                self.log_debug("Attempting to download file %s with iget to current local directory" % \
+                                   logical_path)
+                cw_result = self._cw.run("iget %s" % \
+                                         (logical_path))
+
+            # local target selected
+            else:
+                self.log_debug("Attempting to download file %s with iget to %s" % (logical_path, local_path))
+                cw_result = self._cw.run("iget %s %s " %
+                                         (logical_path, local_path))
+
+            # check our result
+            if cw_result.returncode != 0:
+                raise Exception("Could not download file %s, errorcode %s: %s"\
+                                    % (logical_path, str(cw_result.returncode),
+                                       cw_result))
+
+        except Exception, ex:
+            # couldn't upload for unspecificed reason
+            self.log_error_and_raise(bliss.saga.Error.NoSuccess,
+                                     "Couldn't download file.")
         return
