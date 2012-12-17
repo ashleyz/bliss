@@ -510,7 +510,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     ######################################################################
     ##
     def logicalfile_replicate(self, logicalfile_obj, target):
-        '''This method is called upon logicaldir.remove_locations()
+        '''This method is called upon logicaldir.replicate()
         '''
         
         #path to file we are replicating on iRODS
@@ -533,6 +533,31 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
             self.log_error_and_raise(bliss.saga.Error.NoSuccess,
                                      "Couldn't replicate file.")
         return
+
+    ######################################################################
+    ##
+    def file_move(self, logicalfile_obj, target):
+        '''This method is called upon logicaldir.move()
+        '''
+        #path to file we are moving on iRODS
+        source_path = logicalfile_obj._url.get_path()
+        dest_path   = bliss.saga.Url(target).get_path()
+
+        self.log_debug("Attempting to move logical file %s to location %s" % (source_path, dest_path))
+
+        try:
+            cw_result = self._cw.run("imv %s %s" % (source_path, dest_path) )
+
+            if cw_result.returncode != 0:
+                raise Exception("Could not move logical file %s to location %s, errorcode %s: %s"\
+                                    % (source_path, dest_path, str(cw_result.returncode),
+                                       cw_result))
+
+        except Exception, ex:
+            self.log_error_and_raise(bliss.saga.Error.NoSuccess,
+                                     "Couldn't move file.")
+        return
+
 
 
     ######################################################################

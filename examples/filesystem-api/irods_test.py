@@ -22,8 +22,9 @@ import os
 
 FILE_SIZE = 1 # in megs, approx
 NUM_REPLICAS = 5 # num replicas to create
-TEMP_FILENAME = "test.txt" # filename to use for testing
-IRODS_DIRECTORY = "/osg/home/azebro1/" #directory to store our iRODS files in, don't forget trailing /
+TEMP_FILENAME = "test.txt" # filename to create and use for testing
+TEMP_DIR      = "/irods_test_dir/" #directory to create and use for testing
+IRODS_DIRECTORY = "/osg/home/azebro1/" #directory to store our iRODS files in, don't forget trailing and leading /
 IRODS_RESOURCE = "osgGridFtpGroup" #iRODS resource or resource group to upload files to
 
 def main():
@@ -64,14 +65,14 @@ def main():
         for entry in myfile.list_locations():
             print entry
 
-        print "Making test dir on iRODS"
-        mydir.make_dir("irods://"+IRODS_DIRECTORY+"/irods-test-dir/")
+        print "Making test dir %s on iRODS" % (IRODS_DIRECTORY+TEMP_DIR)
+        mydir.make_dir("irods://"+IRODS_DIRECTORY+TEMP_DIR)
 
-        print "Moving file to test dir on iRODS"
-        myfile.move("irods://"+IRODS_DIRECTORY+"/irods-test-dir/")
+        #print "Moving file to %s test dir on iRODS" % (IRODS_DIRECTORY+TEMP_DIR)
+        #myfile.move("irods://"+IRODS_DIRECTORY+TEMP_DIR)
 
-        print "Deleting test dir from iRODS"
-        mydir.remove("irods://"+IRODS_DIRECTORY+"/irods-test-dir/")
+        print "Deleting test dir %s from iRODS" % (IRODS_DIRECTORY+TEMP_DIR)
+        mydir.remove("irods://"+IRODS_DIRECTORY+TEMP_DIR)
 
         print "Deleting file %s from iRODS" % (IRODS_DIRECTORY+TEMP_FILENAME)
         myfile.remove()
