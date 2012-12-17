@@ -28,7 +28,6 @@ IRODS_DIRECTORY = "/osg/home/azebro1/" #directory to store our iRODS files in, d
 IRODS_RESOURCE = "osgGridFtpGroup" #iRODS resource or resource group to upload files to
 
 def main():
-    # make sure we have a trailing / at the end of our iRODS directory name
     try:
         # grab our home directory (tested on Linux)
         home_dir = os.path.expanduser("~"+"/")
@@ -99,7 +98,7 @@ def main():
         print "An error occured while executing the test script! %s" % (str(ex))
         sys.exit(-1)
 
-    print "test script finished execution"
+    print "iRODS test script finished execution"
 
 if __name__ == "__main__":
     main()

@@ -617,6 +617,8 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     ######################################################################
     ##   
     #
+    # From a convo with Andre M...
+    #
     # So, if you want to have a logical file in that logical dir, you would create it:
     # myfile = mydir.open (irods.tar.gz, saga.replica.Create |
     #                      saga.replica.ReadWrite)
@@ -630,6 +632,14 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     # HERE BE DRAGONS, in other words...
 
     def file_upload(self, logicalfile_obj, source, target=None):
+        '''Uploads a file from the LOCAL, PHYSICAL filesystem to
+           the replica management system.
+           @param source: URL (should be file:// or local path) of local file
+           @param target: Optional param containing ?resource=myresource query
+                          This will upload the file to a specified iRODS
+                          resource or group.
+        '''
+
         #TODO: Make sure that the source URL is a local/file:// URL
         complete_path = bliss.saga.Url(source).get_path()
         
@@ -680,6 +690,12 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     # HERE BE DRAGONS, in other words...
 
     def file_download(self, logicalfile_obj, target=None):
+        '''Downloads a file from the REMOTE REPLICA FILESYSTEM to a local
+           directory.
+           @param target: Optional param containing a local path/filename
+                          to save the file to
+        '''
+
         #TODO: Make sure that the target URL is a local/file:// URL
         # extract the path from the LogicalFile object, excluding
         # the filename
