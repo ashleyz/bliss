@@ -372,7 +372,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         '''
         path = file_obj._url.get_path()
         self.log_debug("Attempting to get size for logical file %s " \
-                           path)
+                         %  path)
         listing = irods_get_directory_listing(self, path)
         return listing[0].size
 
