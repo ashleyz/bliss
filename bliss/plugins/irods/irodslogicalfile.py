@@ -341,7 +341,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         complete_path = dir_obj._url.path
         result = []
 
-        self.log_debug("Attempting to get listing for %s" % complete_path)
+        self.log_debug("Attempting to get directory listing for logical path %s" % complete_path)
 
         try:
             cw_result = self._cw.run("ils %s" % complete_path)
@@ -390,6 +390,8 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         '''Implements interface from FilesystemPluginInterface
         '''
         path = file_obj._url.get_path()
+        self.log_debug("Attempting to get size for logical file %s " \
+                           path)
         listing = irods_get_directory_listing(self, path)
         return listing[0].size
 
@@ -426,7 +428,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     def dir_remove(self, dir_obj, path=None):
         '''This method is called upon logicaldir.remove()
         '''
-        #complete_path = dir_obj._url.path
         complete_path = bliss.saga.Url(path).get_path()
         self.log_debug("Attempting to remove directory at: %s" % complete_path)
 
@@ -456,10 +457,10 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     def logicalfile_list_locations(self, logicalfile_obj):
         '''This method is called upon logicaldir.list_locations()
         '''
-
-        #return a list of all locations the file is located at
-
+        #return a list of all replica locations for a file
         path = logicalfile_obj._url.get_path()
+        self.log_debug("Attempting to get a list of replica locations for %s" \
+                           % path)
         listing = irods_get_directory_listing(self, path)
         return listing[0].locations
 
@@ -511,8 +512,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
     ##
     def logicalfile_replicate(self, logicalfile_obj, target):
         '''This method is called upon logicaldir.replicate()
-        '''
-        
+        '''        
         #path to file we are replicating on iRODS
         complete_path = logicalfile_obj._url.get_path()        
 
@@ -614,7 +614,6 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
                                      % (complete_path))
         return
 
-
     ######################################################################
     ##   
     #
@@ -685,8 +684,8 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
         # extract the path from the LogicalFile object, excluding
         # the filename
         logical_path=logicalfile_obj._url.get_path()
-        #[0:string.rfind(logicalfile_obj._url.get_path(), "/")+1]
 
+        # fill in our local path if one was specified
         local_path = ""
         if target:
             local_path = bliss.saga.Url(target).get_path()
@@ -720,7 +719,7 @@ class iRODSLogicalFilePlugin(LogicalFilePluginInterface):
                                        cw_result))
 
         except Exception, ex:
-            # couldn't upload for unspecificed reason
+            # couldn't download for unspecificed reason
             self.log_error_and_raise(bliss.saga.Error.NoSuccess,
                                      "Couldn't download file.")
         return
